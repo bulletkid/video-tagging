@@ -1,6 +1,6 @@
 {
   "name": "percepto-video-tagging",
-  "version": "v0.0.24",
+  "version": "v0.0.27",
   "authors": [
     "OzGitele", "sblonder"
   ],
@@ -15,7 +15,7 @@
   ],
   "main": "video-tagging.html",
   "license": "MIT",
-  "homepage": "https://github.com/CatalystCode/video-tagging.git",
+  "homepage": "https://github.com/perceptoDrones/video-tagging.git",
   "ignore": [
     "/.*",
     "node_modules",
