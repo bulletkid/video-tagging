@@ -1,8 +1,8 @@
 {
-  "name": "video-tagging",
+  "name": "percepto-video-tagging",
   "version": "v0.0.24",
   "authors": [
-    "OzGitele"
+    "OzGitele", "sblonder"
   ],
   "description": "A conrol for tagging videos.",
   "keywords": [
