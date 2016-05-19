@@ -477,7 +477,11 @@
         //Draw all regions for this frame
         this.drawAllRegionsOnFrame(regions);
       } else {
-        regions = frames[Object.keys(frames).length];
+        for(var i in frames) {
+          if (!frames[i] || !frames[i].length) delete frames[i];
+        }
+        var lastFrameId = Object.keys(frames).filter(function(el) {return parseInt(el) < parseInt(frameIndex)}).pop();
+        regions = frames[lastFrameId];
         this.drawAllRegionsOnFrame(regions);
       }
     },
