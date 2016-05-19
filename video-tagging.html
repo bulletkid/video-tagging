@@ -488,6 +488,7 @@
      */
     drawAllRegionsOnFrame: function (regions) {
       var widthRatio, heightRatio, x1, x2, y1, y2;
+      if (!regions) regions = [];
       for (var i = 0; i < regions.length; i++) {
 
         var region = regions[i];
