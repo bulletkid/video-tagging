@@ -468,40 +468,48 @@
           this.optionalTags.resetSelected();
     },
     showAllRegions: function() {
-            this.clearFrameElements();//Clear canvas and tags
-            this.cleanSelectedElements();//Clear selected regions
-            var frameIndex = this.getCurrentFrame();
-            var regions = this.frames[frameIndex];
-            
-            if(regions && regions.length > 0) {
-              //Draw all regions for this frame
-              for (var i=0; i<regions.length;i++) {
+      this.clearFrameElements();//Clear canvas and tags
+      this.cleanSelectedElements();//Clear selected regions
+      var frameIndex = this.getCurrentFrame();
+      var frames = this.frames;
+      var regions = this.frames[frameIndex];
+      if (regions && regions.length > 0) {
+        //Draw all regions for this frame
+        this.drawAllRegionsOnFrame(regions);
+      } else {
+        regions = frames[Object.keys(frames).length];
+        this.drawAllRegionsOnFrame(regions);
+      }
+    },
+    /**
+     * @method drawAllRegionsOnFrame
+     * Draws all regions per current frame.
+     * @params array with regions coordinates.
+     */
+    drawAllRegionsOnFrame: function (regions) {
+      var widthRatio, heightRatio, x1, x2, y1, y2;
+      for (var i = 0; i < regions.length; i++) {
 
-                  var region = regions[i];
-                  //Frame was tagged as empty?
-                  if(Object.keys(region).length === 0) {
-                      this.indicateEmptyFrame(true);
-                      continue;
-                  }
-                  //Calculate x, y relative to current width and height          
-                  var widthRatio =  $('#vid').width() / region.width;
-                  var heightRatio =  $('#vid').height() / region.height ;
-                  var x1 = (region.x1 * widthRatio);
-                  var y1 = (region.y1 * heightRatio);
-                  var x2 = (region.x2 * widthRatio);
-                  var y2 = (region.y2 * heightRatio);
+        var region = regions[i];
+        //Frame was tagged as empty?
+        if (Object.keys(region).length === 0) {
+          this.indicateEmptyFrame(true);
+          continue;
+        }
+        //Calculate x, y relative to current width and height
+        widthRatio = $('#vid').width() / region.width;
+        heightRatio = $('#vid').height() / region.height;
+        x1 = (region.x1 * widthRatio);
+        y1 = (region.y1 * heightRatio);
+        x2 = (region.x2 * widthRatio);
+        y2 = (region.y2 * heightRatio);
 
-                  x1 = (region.x1 * widthRatio);
-                  y1 = (region.y1 * heightRatio);
-                  x2 = (region.x2 * widthRatio);
-                  y2 = (region.y2 * heightRatio);
-                  this.drawRegion( x1, y1, x2, y2, region.name);
-                  //Only 1 region - select it and show tags
-                  if(regions.length === 1) {
-                      this.regionSelected(region.name)
-                  }
-              }
-            }
+        this.drawRegion(x1, y1, x2, y2, region.name);
+        //Only 1 region - select it and show tags
+        if (regions.length === 1) {
+          this.regionSelected(region.name)
+        }
+      }
     },
     /** 
        * @method addRegion
