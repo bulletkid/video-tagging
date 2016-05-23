@@ -226,7 +226,13 @@
               }
               this.emitRegionToHost();
           });
-    },
+
+       //hide region label on leave
+      $( this.regionLabelDiv )
+        .mouseleave(function(e) {
+          self.regionLabelDiv.style.display = "none";
+        });
+     },
     
 
     /**
@@ -236,6 +242,7 @@
        * 
        * Allows selection of a rectangle
        */
+    lastSelection: null,
     clearArea: function()
     {
         $('canvas#overlay').imgAreaSelect({
@@ -265,17 +272,25 @@
                         fadeSpeed: 200,
                         
                         onSelectEnd: function(img, selection){
-                      
-                              if (selection.width !== 0 && selection.height !== 0) {
+                              if (selection.width && selection.height) {
                                 self.areaSelected = true;
-                                self.createRegion(selection.x1, selection.y1, selection.x2, selection.y2);
-                                self.clearArea(); 
+                              } else {
+                                if (self.lastSelection) {
+                                  self.areaSelected = true;
+                                  self.createRegion(self.lastSelection.x1, self.lastSelection.y1, self.lastSelection.x2, self.lastSelection.y2);
+                                  self.clearArea();
+                                  self.lastSelection = null;
+                                }
                               }
                          },
-                         onSelectStart: function(img, selection){
-
-                              self.cleanSelectedElements();
-                         },
+                        onSelectStart: function(img, selection){
+                           self.cleanSelectedElements();
+                        },
+                        onSelectChange: function (img, selection) {
+                          if (selection.height && selection.width) {
+                            self.lastSelection = selection;
+                          }
+                        }
                       }); 
           }
     },
@@ -399,6 +414,17 @@
           this.showAllRegions();
           this.emitRegionToHost();
     },
+    editRegion: function (divId) {
+      var currentRegion = this.frames[this.getCurrentFrame()][divId - 1];
+      this.lastSelection = $('canvas#overlay').imgAreaSelect({
+        instance: true,
+        x1: currentRegion.x1,
+        y1: currentRegion.y1,
+        x2: currentRegion.x2,
+        y2: currentRegion.y2
+      }).getSelection();
+      this.deleteRegion();
+    },
     /**
        * @method emitRegionToHost
        * Fires an event to send the array of regions.
@@ -435,18 +461,16 @@
             var self = this;
             $( div )
                       .click(function(e) {
-                         self.regionSelected(div.id);
+                         self.editRegion(div.id);
                       })
             $( div )
                       .mouseenter(function(e) {
-                          
-                          self.positionRegionNameLabel(this);
+                        self.regionSelected(div.id);
+                        self.positionRegionNameLabel(this);
                       })
-                      .mouseleave(function() {
-
-                        self.regionLabelDiv.style.display = "none";
-                        if(self.selectedRegionId === div.id) {
-                              self.regionLabelDiv.style.display = "block";
+                      .mouseleave(function(e) {
+                        if ($(e.relatedTarget).closest(self.regionLabelDiv).length === 0) {
+                          self.regionLabelDiv.style.display = "none";
                         }
                       });
 
