@@ -504,7 +504,9 @@
         } else {
           if (!regions && this.checkRegionsPresence(prevRegions)) {
             console.log('copy regions from previous frame');
-            this.frames[frameIndex] = this.frames[frameIndex - 1];
+            console.log('prev regions: ', prevRegions);
+            var clonedArray = JSON.parse(JSON.stringify(prevRegions));
+            this.frames[frameIndex] = clonedArray;
             this.emitRegionToHost();
             setTimeout(this.drawAllRegionsOnFrame(this.frames[frameIndex]), 1000);
           }
