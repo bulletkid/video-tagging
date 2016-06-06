@@ -29,4 +29,4 @@ node_modules
 
 server.js
 bower_components
-
+.idea/

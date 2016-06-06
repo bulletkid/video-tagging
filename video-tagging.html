@@ -106,6 +106,12 @@
     },
     // Element Lifecycle
     ready: function() {
+      /**
+       * keyboard shortcuts managing:
+       * see: https://github.com/madrobby/keymaster
+       */
+      this.keyboardControl = window.key.noConflict();
+
       this.frames = {}; // Holds the data of the tagged frames, their regions and tags
       this.seeking = false;//Flag for enabling control over the seek bar while the video is playing, see playingCallback function
       this.selectedRegionId = 0;//Holds the current selected region number
@@ -774,4 +780,5 @@
 <script src="../jquery/dist/jquery.min.js"></script>
 <script src="../moment/moment.js"></script>
 <script src="js/jquery.imgareaselect.js"></script>
+<script src="js/keymaster.js"></script>
 </dom-module>
