@@ -159,10 +159,18 @@
       attachEvents: function () {
         var self = this;
         this.keyboardControl('right, shift+right', function (event, handler) {
-          self.stepFwdClicked(event.shiftKey);
+          var pressedKeys = self.keyboardControl.getPressedKeyCodes();
+          var cond = pressedKeys.length == 1 || (pressedKeys.length == 2 && pressedKeys[0] == 16 );
+          if(cond) {
+            self.stepFwdClicked(!event.shiftKey);
+          }
         });
         this.keyboardControl('left, shift+left', function (event, handler) {
-          self.stepBwdClicked(event.shiftKey);
+          var pressedKeys = self.keyboardControl.getPressedKeyCodes();
+          var cond = pressedKeys.length == 1 || (pressedKeys.length == 2 && pressedKeys[0] == 16 );
+          if(cond) {
+            self.stepBwdClicked(!event.shiftKey);
+          }
         });
       },
 
@@ -246,8 +254,7 @@
 
         //hide region label on leave
         $( this.regionLabelDiv ).mouseleave(function(e) {
-            self.removeRegionSelection();
-            self.regionLabelDiv.style.display = "none";
+          self.regionLabelDiv.style.display = "none";
         });
 
         this.attachEvents();
@@ -356,11 +363,15 @@
       },
       changeCurrentSelection: function (x1, y1, x2, y2) {
         var position = this.currentSelection.getSelection();
+        if(position.height && position.width) {
+          this.lastSelection = this.currentSelection.getSelection();
+        }
+
         this.currentSelection.setSelection(
-                position.x1 + x1,
-                position.y1 + y1,
-                position.x2 + x2,
-                position.y2 + y2);
+            position.x1 + x1,
+            position.y1 + y1,
+            position.x2 + x2,
+            position.y2 + y2);
         this.currentSelection.update();
       },
 
