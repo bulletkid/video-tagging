@@ -153,6 +153,7 @@
 
         this.playing = null;
         this.ctx = this.overlay.getContext("2d");
+
       },
 
       /**
@@ -633,6 +634,7 @@
           this.frames[frameIndex] = [];
           this.frames[frameIndex].push(region);
         }
+
         return region;
       },
       /**
@@ -846,7 +848,7 @@
         var perc =  100 * this.seekBar.value / this.seekBar.max;
         this.seekStyle.textContent =  '.seek::-webkit-slider-runnable-track{background-size:'+perc+'% 100%}';
         this.seekStyle.textContent += '.seek::-moz-range-track{background-size:'+perc+'% 100%}';
-      },
+      }
     });
   </script>
   <script src="../jquery/dist/jquery.min.js"></script>
