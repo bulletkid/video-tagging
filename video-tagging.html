@@ -153,6 +153,7 @@
 
         this.playing = null;
         this.ctx = this.overlay.getContext("2d");
+
       },
 
       attachEvents: function () {
@@ -244,12 +245,51 @@
         });
 
         //hide region label on leave
-        $( this.regionLabelDiv )
-            .mouseleave(function(e) {
-              self.regionLabelDiv.style.display = "none";
-            });
+        $( this.regionLabelDiv ).mouseleave(function(e) {
+            self.removeRegionSelection();
+            self.regionLabelDiv.style.display = "none";
+        });
 
         this.attachEvents();
+
+        //keyboard shortcuts:
+        var keyCodes = {
+          83: 's',
+          90: 'z',
+          88: 'x',
+          38: 'up',
+          37: 'left',
+          39: 'right',
+          40: 'down'
+        };
+        var selectionShortcuts = {
+          's+up': [0,-1,0,-1],
+          's+down': [0,1,0,1],
+          's+left': [-1,0,-1,0],
+          's+right': [1,0,1,0],
+          'z+up': [0,-1,0,0],
+          'z+down': [0,0,0,1],
+          'z+left': [-1,0,0,0],
+          'z+right': [0, 0, 1, 0],
+          'x+up': [0,1,0,0],
+          'x+down': [0,0,0,-1],
+          'x+left': [1,0,0,0],
+          'x+right': [0,0,-1,0]
+        };
+        this.keyboardControl('up, down, left, right', function(e, handler){
+          if (self.currentSelection) {
+            console.log(handler.shortcut);
+            e.preventDefault();
+            var pressedKeys = self.keyboardControl.getPressedKeyCodes();
+            if (pressedKeys.length !== 2) {
+              return;
+            }
+            var shortcut = keyCodes[pressedKeys[0]] + '+' + keyCodes[pressedKeys[1]];
+            if (selectionShortcuts[shortcut]) {
+              self.changeCurrentSelection.apply(self, selectionShortcuts[shortcut]);
+            }
+          }
+        });
       },
 
 
@@ -260,6 +300,7 @@
        *
        * Allows selection of a rectangle
        */
+      currentSelection: null,
       lastSelection: null,
       clearArea: function()
       {
@@ -297,12 +338,13 @@
                   self.areaSelected = true;
                   self.createRegion(self.lastSelection.x1, self.lastSelection.y1, self.lastSelection.x2, self.lastSelection.y2);
                   self.clearArea();
-                  self.lastSelection = null;
+                  self.lastSelection = self.currentSelection = null;
                 }
               }
             },
             onSelectStart: function(img, selection){
               self.cleanSelectedElements();
+              self.currentSelection = $(img).imgAreaSelect({ instance: true });
             },
             onSelectChange: function (img, selection) {
               if (selection.height && selection.width) {
@@ -312,7 +354,15 @@
           });
         }
       },
-
+      changeCurrentSelection: function (x1, y1, x2, y2) {
+        var position = this.currentSelection.getSelection();
+        this.currentSelection.setSelection(
+                position.x1 + x1,
+                position.y1 + y1,
+                position.x2 + x2,
+                position.y2 + y2);
+        this.currentSelection.update();
+      },
 
 
       /**
@@ -434,13 +484,14 @@
       },
       editRegion: function (divId) {
         var currentRegion = this.frames[this.getCurrentFrame()][divId - 1];
-        this.lastSelection = $('canvas#overlay').imgAreaSelect({
+        this.currentSelection = $('canvas#overlay').imgAreaSelect({
           instance: true,
           x1: currentRegion.x1,
           y1: currentRegion.y1,
           x2: currentRegion.x2,
           y2: currentRegion.y2
-        }).getSelection();
+        });
+        this.lastSelection = this.currentSelection.getSelection();
         this.deleteRegion();
       },
       /**
@@ -595,6 +646,7 @@
           this.frames[frameIndex] = [];
           this.frames[frameIndex].push(region);
         }
+
         return region;
       },
       /**
@@ -808,7 +860,7 @@
         var perc =  100 * this.seekBar.value / this.seekBar.max;
         this.seekStyle.textContent =  '.seek::-webkit-slider-runnable-track{background-size:'+perc+'% 100%}';
         this.seekStyle.textContent += '.seek::-moz-range-track{background-size:'+perc+'% 100%}';
-      },
+      }
     });
   </script>
   <script src="../jquery/dist/jquery.min.js"></script>
