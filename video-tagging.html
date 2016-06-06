@@ -491,14 +491,14 @@
         this.optionalTags.toggleEnableButtons(false);
         this.optionalTags.resetSelected();
       },
-      showAllRegions: function() {
+      showAllRegions: function(playing) {
         this.clearFrameElements();//Clear canvas and tags
         this.cleanSelectedElements();//Clear selected regions
         var frameIndex = this.getCurrentFrame();
         console.log('frame index: ', frameIndex);
         var regions = this.frames[frameIndex];
         var prevRegions = this.frames[frameIndex - 1];
-        if (this.checkRegionsPresence(regions)) {
+        if (this.checkRegionsPresence(regions) || playing === true) {
           //Draw all regions for this frame
           this.drawAllRegionsOnFrame(this.frames[frameIndex]);
         } else {
@@ -758,7 +758,7 @@
         this.optionalTags.toggleEnableButtons(false);
         var self = this;
         this.playing = setInterval(function() {
-          self.playingCallback();
+          self.playingCallback(true);
         }, 10);
       },
       pauseState: function() {
@@ -768,14 +768,14 @@
         this.playButton.classList.toggle("icon-pause2", !this.video.paused);
         this.optionalTags.toggleEnableButtons(false);
       },
-      playingCallback: function() {
+      playingCallback: function(playing) {
 
         this.frameText.innerHTML = this.getCurrentFrame();
         this.displayVideoTime();
         if(!this.seeking){
           this.updateSeekBar();
         }
-        this.showAllRegions();
+        this.showAllRegions(playing);
       },
       displayVideoTime: function() {
         var currentTime = Math.round(this.video.currentTime);
