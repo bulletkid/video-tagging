@@ -325,18 +325,6 @@
           // }
 
           //"tab"
-          // if (e.which === 9) {
-          //   if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.repeat) {
-          //     return;
-          //   }
-          //   e.preventDefault();
-          //   e.stopPropagation();
-          //   if (self.currentSelection) {
-          //     var nextId = self.editedRegionId;
-          //     if (self.frames[self.getCurrentFrame()].length < nextId) {
-          //       nextId = 1;
-          //     }
-          //     self.editRegion(nextId);
 
 
 
@@ -346,10 +334,7 @@
 
 
 
-          //   } else {
 
-          //   }
-          // }
 
           //"shift + tab"
           // if (e.which === 9 && e.shiftKey) {
@@ -441,7 +426,6 @@
         //   var newRegion = this.frames[this.getCurrentFrame()].splice(-1, 1)[0];
         //   this.frames[this.getCurrentFrame()].splice(this.editedRegionId, 0, newRegion);
         // }
-        // this.editedRegionId = null;
 
 
 
@@ -592,7 +576,6 @@
           y2: currentRegion.y2
         });
         this.lastSelection = this.currentSelection.getSelection();
-        // this.editedRegionId = divId - 1;
         this.deleteRegion();
       },
       /**
