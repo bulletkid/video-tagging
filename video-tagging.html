@@ -285,7 +285,6 @@
         };
         this.keyboardControl('up, down, left, right', function(e, handler){
           if (self.currentSelection) {
-            console.log(handler.shortcut);
             e.preventDefault();
             var pressedKeys = self.keyboardControl.getPressedKeyCodes();
             if (pressedKeys.length !== 2) {
@@ -296,6 +295,73 @@
               self.changeCurrentSelection.apply(self, selectionShortcuts[shortcut]);
             }
           }
+        });
+        document.addEventListener("keydown", function(e) {
+
+          //"enter"
+          if (e.which === 13) {
+            if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.repeat) {
+              return;
+            }
+            if (self.currentSelection) {
+              e.preventDefault();
+              self.saveCloseSelection();
+              self.newRegionSelection = false;
+            }
+          }
+
+          //"backspace"
+          // if (e.which === 8) {
+          //   if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.repeat) {
+          //     return;
+          //   }
+          //   if (self.currentSelection) {
+          //     e.preventDefault();
+          //     self.currentSelection.cancelSelection();
+          //     self.lastSelection = self.currentSelection = null;
+
+          //     self.newRegionSelection = false;
+          //   }
+          // }
+
+          //"tab"
+          // if (e.which === 9) {
+          //   if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.repeat) {
+          //     return;
+          //   }
+          //   e.preventDefault();
+          //   e.stopPropagation();
+          //   if (self.currentSelection) {
+          //     var nextId = self.editedRegionId;
+          //     if (self.frames[self.getCurrentFrame()].length < nextId) {
+          //       nextId = 1;
+          //     }
+          //     self.editRegion(nextId);
+
+
+
+
+
+
+
+
+
+          //   } else {
+
+          //   }
+          // }
+
+          //"shift + tab"
+          // if (e.which === 9 && e.shiftKey) {
+          //   if (e.altKey || e.ctrlKey || e.metaKey || e.repeat) {
+          //     return;
+          //   }
+          //   var nextEditedRegionId = self.selectedRegionId ? self.selectedRegionId - 1 : 0;
+          //   if (nextEditedRegionId < 0) {
+          //     nextEditedRegionId = self.frames[self.getCurrentFrame()].length;
+          //   }
+          //   self.editRegion(nextEditedRegionId);
+          // }
         });
       },
 
@@ -309,6 +375,8 @@
        */
       currentSelection: null,
       lastSelection: null,
+      newRegionSelection: false,
+      editedRegionId: null,
       clearArea: function()
       {
         $('canvas#overlay').imgAreaSelect({
@@ -324,7 +392,6 @@
           hide:true
         });
         if(this.regiontype.toLowerCase() === "rectangle") {
-          var areaSelected = false;
 
           $('canvas#overlay').imgAreaSelect({
             disable: false, //enable/disable
@@ -339,19 +406,20 @@
 
             onSelectEnd: function(img, selection){
               if (selection.width && selection.height) {
-                self.areaSelected = true;
               } else {
                 if (self.lastSelection) {
-                  self.areaSelected = true;
-                  self.createRegion(self.lastSelection.x1, self.lastSelection.y1, self.lastSelection.x2, self.lastSelection.y2);
-                  self.clearArea();
-                  self.lastSelection = self.currentSelection = null;
+                  self.saveCloseSelection();
                 }
+              }
+              if (self.newRegionSelection) {
+                self.newRegionSelection = false;
+                self.saveCloseSelection();                
               }
             },
             onSelectStart: function(img, selection){
               self.cleanSelectedElements();
               self.currentSelection = $(img).imgAreaSelect({ instance: true });
+              self.newRegionSelection = true;
             },
             onSelectChange: function (img, selection) {
               if (selection.height && selection.width) {
@@ -361,12 +429,29 @@
           });
         }
       },
+      saveCloseSelection: function () {
+        var selection = this.currentSelection.getSelection();
+        if ((!selection.width || !selection.height) && this.lastSelection) {
+          selection = this.lastSelection;
+        } 
+        this.lastSelection = this.currentSelection = null;
+        this.createRegion(selection.x1, selection.y1, selection.x2, selection.y2);
+        this.clearArea();
+        // if (this.editedRegionId || this.editedRegionId === 0) {
+        //   var newRegion = this.frames[this.getCurrentFrame()].splice(-1, 1)[0];
+        //   this.frames[this.getCurrentFrame()].splice(this.editedRegionId, 0, newRegion);
+        // }
+        // this.editedRegionId = null;
+
+
+
+
+      },
       changeCurrentSelection: function (x1, y1, x2, y2) {
         var position = this.currentSelection.getSelection();
         if(position.height && position.width) {
           this.lastSelection = this.currentSelection.getSelection();
         }
-
         this.currentSelection.setSelection(
             position.x1 + x1,
             position.y1 + y1,
@@ -494,6 +579,10 @@
         this.emitRegionToHost();
       },
       editRegion: function (divId) {
+        if (this.currentSelection) {
+          this.saveCloseSelection();
+          this.selectedRegionId = divId;
+        }
         var currentRegion = this.frames[this.getCurrentFrame()][divId - 1];
         this.currentSelection = $('canvas#overlay').imgAreaSelect({
           instance: true,
@@ -503,6 +592,7 @@
           y2: currentRegion.y2
         });
         this.lastSelection = this.currentSelection.getSelection();
+        // this.editedRegionId = divId - 1;
         this.deleteRegion();
       },
       /**
