@@ -274,14 +274,14 @@
           's+down': [0,1,0,1],
           's+left': [-1,0,-1,0],
           's+right': [1,0,1,0],
-          'z+up': [0,-1,0,0],
-          'z+down': [0,0,0,1],
-          'z+left': [-1,0,0,0],
-          'z+right': [0, 0, 1, 0],
-          'x+up': [0,1,0,0],
-          'x+down': [0,0,0,-1],
-          'x+left': [1,0,0,0],
-          'x+right': [0,0,-1,0]
+          'z+up': [0,1,0,0],
+          'z+down': [0,0,0,-1],
+          'z+left': [1,0,0,0],
+          'z+right': [0, 0, -1, 0],
+          'x+up': [0,-1,0,0],
+          'x+down': [0,0,0,1],
+          'x+left': [-1,0,0,0],
+          'x+right': [0,0,1,0]
         };
         this.keyboardControl('up, down, left, right', function(e, handler){
           if (self.currentSelection) {
@@ -568,12 +568,14 @@
           this.selectedRegionId = divId;
         }
         var currentRegion = this.frames[this.getCurrentFrame()][divId - 1];
+        var widthRatio = $('#vid').width() / currentRegion.width;
+        var heightRatio = $('#vid').height() / currentRegion.height;
         this.currentSelection = $('canvas#overlay').imgAreaSelect({
           instance: true,
-          x1: currentRegion.x1,
-          y1: currentRegion.y1,
-          x2: currentRegion.x2,
-          y2: currentRegion.y2
+          x1: (currentRegion.x1 * widthRatio),
+          y1: (currentRegion.y1 * heightRatio),
+          x2: (currentRegion.x2 * widthRatio),
+          y2: (currentRegion.y2 * heightRatio)
         });
         this.lastSelection = this.currentSelection.getSelection();
         this.editedRegionId = divId - 1;
