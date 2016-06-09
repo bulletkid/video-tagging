@@ -157,21 +157,33 @@
       },
 
       attachEvents: function () {
+        var key_codes_to_ignore = [83, 90, 88]
         var self = this;
         this.keyboardControl('right, shift+right', function (event, handler) {
           var pressedKeys = self.keyboardControl.getPressedKeyCodes();
-          self.clearArea();
-          self.stepFwdClicked(!event.shiftKey);
+          var to_ignore = false
+          for(key in pressedKeys){
+              if(key_codes_to_ignore.indexOf(pressedKeys[key]) != -1){
+                  to_ignore = true
+              }
+          }
+          if(!to_ignore){
+            self.clearArea();
+            self.stepFwdClicked(!event.shiftKey);
+          }
         });
         this.keyboardControl('left, shift+left', function (event, handler) {
           var pressedKeys = self.keyboardControl.getPressedKeyCodes();
-          self.clearArea();
-          self.stepBwdClicked(true); //never copy rec backwards...
-//          if (is_shift){
-//          }
-//          var cond = pressedKeys.length == 1 || (pressedKeys.length > 1 && is_shift );
-//          if(cond) {
-//          }
+          var to_ignore = false
+          for(key in pressedKeys){
+            if(key_codes_to_ignore.indexOf(pressedKeys[key]) != -1){
+                to_ignore = true
+            }
+          }
+          if(!to_ignore){
+            self.clearArea();
+            self.stepBwdClicked(true); //never copy rec backwards...
+          }
         });
       },
 
