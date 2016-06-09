@@ -106,6 +106,12 @@
       },
       // Element Lifecycle
       ready: function() {
+        /**
+         * keyboard shortcuts managing:
+         * see: https://github.com/madrobby/keymaster
+         */
+        this.keyboardControl = window.key.noConflict();
+
         this.frames = {}; // Holds the data of the tagged frames, their regions and tags
         this.seeking = false;//Flag for enabling control over the seek bar while the video is playing, see playingCallback function
         this.selectedRegionId = 0;//Holds the current selected region number
@@ -147,6 +153,25 @@
 
         this.playing = null;
         this.ctx = this.overlay.getContext("2d");
+
+      },
+
+      attachEvents: function () {
+        var self = this;
+        this.keyboardControl('right, shift+right', function (event, handler) {
+          var pressedKeys = self.keyboardControl.getPressedKeyCodes();
+          var cond = pressedKeys.length == 1 || (pressedKeys.length == 2 && pressedKeys[0] == 16 );
+          if(cond) {
+            self.stepFwdClicked(!event.shiftKey);
+          }
+        });
+        this.keyboardControl('left, shift+left', function (event, handler) {
+          var pressedKeys = self.keyboardControl.getPressedKeyCodes();
+          var cond = pressedKeys.length == 1 || (pressedKeys.length == 2 && pressedKeys[0] == 16 );
+          if(cond) {
+            self.stepBwdClicked(!event.shiftKey);
+          }
+        });
       },
 
       /**
@@ -228,12 +253,106 @@
         });
 
         //hide region label on leave
-        $( this.regionLabelDiv )
-            .mouseleave(function(e) {
-              self.regionLabelDiv.style.display = "none";
-            });
-      },
+        $( this.regionLabelDiv ).mouseleave(function(e) {
+          self.regionLabelDiv.style.display = "none";
+        });
 
+        this.attachEvents();
+
+        //keyboard shortcuts:
+        var keyCodes = {
+          83: 's',
+          90: 'z',
+          88: 'x',
+          38: 'up',
+          37: 'left',
+          39: 'right',
+          40: 'down'
+        };
+        var selectionShortcuts = {
+          's+up': [0,-1,0,-1],
+          's+down': [0,1,0,1],
+          's+left': [-1,0,-1,0],
+          's+right': [1,0,1,0],
+          'z+up': [0,-1,0,0],
+          'z+down': [0,0,0,1],
+          'z+left': [-1,0,0,0],
+          'z+right': [0, 0, 1, 0],
+          'x+up': [0,1,0,0],
+          'x+down': [0,0,0,-1],
+          'x+left': [1,0,0,0],
+          'x+right': [0,0,-1,0]
+        };
+        this.keyboardControl('up, down, left, right', function(e, handler){
+          if (self.currentSelection) {
+            e.preventDefault();
+            var pressedKeys = self.keyboardControl.getPressedKeyCodes();
+            if (pressedKeys.length !== 2) {
+              return;
+            }
+            var shortcut = keyCodes[pressedKeys[0]] + '+' + keyCodes[pressedKeys[1]];
+            if (selectionShortcuts[shortcut]) {
+              self.changeCurrentSelection.apply(self, selectionShortcuts[shortcut]);
+            }
+          }
+        });
+        document.addEventListener("keydown", function(e) {
+
+          //"enter"
+          if (e.which === 13) {
+            if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.repeat) {
+              return;
+            }
+            if (self.currentSelection) {
+              e.preventDefault();
+              self.saveCloseSelection();
+            }
+          }
+
+          //"backspace"
+          // if (e.which === 8) {
+          //   if (e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.repeat) {
+          //     return;
+          //   }
+          //   if (self.currentSelection) {
+          //     e.preventDefault();
+          //     self.currentSelection.cancelSelection();
+          //     self.lastSelection = self.currentSelection = null;
+
+          //   }
+          // }
+
+          //"tab"
+          if (e.which === 9 && !(e.shiftKey || e.altKey || e.ctrlKey || e.metaKey || e.repeat)) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (self.currentSelection) {
+              var nextId = self.editedRegionId + 2;
+              if (self.frames[self.getCurrentFrame()].length < nextId) {
+                nextId = 1;
+              }
+              self.editRegion(nextId);
+            } else {
+              self.editRegion(1);
+            }
+          }
+
+          //"shift + tab"
+          if (e.which === 9 && e.shiftKey && !(e.altKey || e.ctrlKey || e.metaKey || e.repeat)) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (self.currentSelection) {
+              var nextId = self.editedRegionId;
+              if (nextId < 1) {
+                nextId = self.frames[self.getCurrentFrame()].length;
+              }
+              self.editRegion(nextId);
+            } else {
+              self.editRegion(1);
+            }
+          }
+        });
+      },
 
       /**
        * JQuery Area selector
@@ -242,7 +361,10 @@
        *
        * Allows selection of a rectangle
        */
+      currentSelection: null,
       lastSelection: null,
+      newRegionSelection: false,
+      editedRegionId: null,
       clearArea: function()
       {
         $('canvas#overlay').imgAreaSelect({
@@ -258,7 +380,6 @@
           hide:true
         });
         if(this.regiontype.toLowerCase() === "rectangle") {
-          var areaSelected = false;
 
           $('canvas#overlay').imgAreaSelect({
             disable: false, //enable/disable
@@ -273,18 +394,19 @@
 
             onSelectEnd: function(img, selection){
               if (selection.width && selection.height) {
-                self.areaSelected = true;
               } else {
                 if (self.lastSelection) {
-                  self.areaSelected = true;
-                  self.createRegion(self.lastSelection.x1, self.lastSelection.y1, self.lastSelection.x2, self.lastSelection.y2);
-                  self.clearArea();
-                  self.lastSelection = null;
+                  self.saveCloseSelection();
                 }
+              }
+              if (self.newRegionSelection) {
+                self.saveCloseSelection();                
               }
             },
             onSelectStart: function(img, selection){
               self.cleanSelectedElements();
+              self.currentSelection = $(img).imgAreaSelect({ instance: true });
+              self.newRegionSelection = true;
             },
             onSelectChange: function (img, selection) {
               if (selection.height && selection.width) {
@@ -294,7 +416,32 @@
           });
         }
       },
-
+      saveCloseSelection: function () {
+        var selection = this.currentSelection.getSelection();
+        if ((!selection.width || !selection.height) && this.lastSelection) {
+          selection = this.lastSelection;
+        } 
+        this.lastSelection = this.currentSelection = null;
+        if (this.editedRegionId || this.editedRegionId === 0) {
+          this.updateRegion(selection.x1, selection.y1, selection.x2, selection.y2, this.frames[this.getCurrentFrame()][this.editedRegionId]);
+        } else {
+          this.createRegion(selection.x1, selection.y1, selection.x2, selection.y2);
+        }
+        this.clearArea();
+        this.editedRegionId = this.newRegionSelection = false;
+      },
+      changeCurrentSelection: function (x1, y1, x2, y2) {
+        var position = this.currentSelection.getSelection();
+        if(position.height && position.width) {
+          this.lastSelection = this.currentSelection.getSelection();
+        }
+        this.currentSelection.setSelection(
+            position.x1 + x1,
+            position.y1 + y1,
+            position.x2 + x2,
+            position.y2 + y2);
+        this.currentSelection.update();
+      },
 
 
       /**
@@ -340,6 +487,7 @@
         }
         this.emitRegionToHost();//Persist
       },
+
       addTagsToRegion: function(selectedTagsArray) {
 
         var regionId = this.selectedRegionId -1;//Revert to zero-based array
@@ -415,15 +563,52 @@
         this.emitRegionToHost();
       },
       editRegion: function (divId) {
+        if (this.currentSelection) {
+          this.saveCloseSelection();
+          this.selectedRegionId = divId;
+        }
         var currentRegion = this.frames[this.getCurrentFrame()][divId - 1];
-        this.lastSelection = $('canvas#overlay').imgAreaSelect({
+        this.currentSelection = $('canvas#overlay').imgAreaSelect({
           instance: true,
           x1: currentRegion.x1,
           y1: currentRegion.y1,
           x2: currentRegion.x2,
           y2: currentRegion.y2
-        }).getSelection();
-        this.deleteRegion();
+        });
+        this.lastSelection = this.currentSelection.getSelection();
+        this.editedRegionId = divId - 1;
+        this.hideEditedRegion();
+      },
+      hideEditedRegion: function () {
+        this.clearFrameElements();//Clear canvas and tags
+        this.cleanSelectedElements();//Clear selected regions
+        var frameIndex = this.getCurrentFrame();
+        var regions = this.frames[frameIndex];
+        var prevRegions = this.frames[frameIndex - 1];
+        if (this.checkRegionsPresence(regions) || playing === true) {
+          //Draw all regions for this frame
+          this.drawAllRegionsExeptEditedOnFrame();
+        } else {
+          if (!regions && this.checkRegionsPresence(prevRegions)) {
+            console.log('copy regions from previous frame');
+            console.log('prev regions: ', prevRegions);
+            var clonedArray = JSON.parse(JSON.stringify(prevRegions));
+            this.frames[frameIndex] = clonedArray;
+            this.emitRegionToHost();
+            setTimeout(this.drawAllRegionsExeptEditedOnFrame(), 1000);
+          }
+        }
+      },
+      updateRegion: function(x1, y1, x2, y2, region) {
+        region.x1 = x1;
+        region.y1 = y1;
+        region.x2 = x2;
+        region.y2 = y2;
+        region.width = $('#vid').width();
+        region.height = $('#vid').height();
+        this.drawRegion(x1, y1, x2, y2, region.name);//Draw
+        this.regionSelected(region.name);//Select it by default
+        this.emitRegionToHost();//Persist
       },
       /**
        * @method emitRegionToHost
@@ -491,14 +676,13 @@
         this.optionalTags.toggleEnableButtons(false);
         this.optionalTags.resetSelected();
       },
-      showAllRegions: function() {
+      showAllRegions: function(playing) {
         this.clearFrameElements();//Clear canvas and tags
         this.cleanSelectedElements();//Clear selected regions
         var frameIndex = this.getCurrentFrame();
-        console.log('frame index: ', frameIndex);
         var regions = this.frames[frameIndex];
         var prevRegions = this.frames[frameIndex - 1];
-        if (this.checkRegionsPresence(regions)) {
+        if (this.checkRegionsPresence(regions) || playing === true) {
           //Draw all regions for this frame
           this.drawAllRegionsOnFrame(this.frames[frameIndex]);
         } else {
@@ -521,16 +705,24 @@
        * @params array with regions coordinates.
        */
       drawAllRegionsOnFrame: function (regions) {
-        var widthRatio, heightRatio, x1, x2, y1, y2;
+        var selected = [];
         if (!regions) regions = [];
         for (var i = 0; i < regions.length; i++) {
-
           var region = regions[i];
           //Frame was tagged as empty?
           if (Object.keys(region).length === 0) {
             this.indicateEmptyFrame(true);
             continue;
           }
+          selected.push(region);
+        }
+        this.drawRegions(selected);
+      },
+      drawRegions: function (regions) {
+        var self = this;
+        regions.forEach(function (region, i) {
+          var widthRatio, heightRatio, x1, x2, y1, y2;
+  
           //Calculate x, y relative to current width and height
           widthRatio = $('#vid').width() / region.width;
           heightRatio = $('#vid').height() / region.height;
@@ -539,12 +731,29 @@
           x2 = (region.x2 * widthRatio);
           y2 = (region.y2 * heightRatio);
 
-          this.drawRegion(x1, y1, x2, y2, region.name);
+          self.drawRegion(x1, y1, x2, y2, region.name);
           //Only 1 region - select it and show tags
           if (regions.length === 1) {
-            this.regionSelected(region.name)
+            self.regionSelected(region.name)
           }
+        })
+      },
+      drawAllRegionsExeptEditedOnFrame: function () {
+        var selected = [];
+        var regions = this.frames[this.getCurrentFrame()] || [];
+        for (var i = 0; i < regions.length; i++) {
+          if (this.editedRegionId === i) {
+            continue;
+          }
+          var region = regions[i];
+          //Frame was tagged as empty?
+          if (Object.keys(region).length === 0) {
+            this.indicateEmptyFrame(true);
+            continue;
+          }
+          selected.push(region);
         }
+        this.drawRegions(selected);
       },
       /**
        * @method addRegion
@@ -578,6 +787,7 @@
           this.frames[frameIndex] = [];
           this.frames[frameIndex].push(region);
         }
+
         return region;
       },
       /**
@@ -715,23 +925,23 @@
       playPauseClicked: function() {
         this.video.paused?this.playState():this.pauseState();
       },
-      stepFwdClicked: function() {
+      stepFwdClicked: function(playing) {
 
         if(!this.video.paused) {
           this.pauseState();
         }
 
         this.video.currentTime = Math.min(this.video.duration, this.video.currentTime + this.frameTime);
-        this.playingCallback();
+        this.playingCallback(playing);
       },
-      stepBwdClicked: function() {
+      stepBwdClicked: function(playing) {
 
         if (this.video.currentTime > 0) {
           if(!this.video.paused) {
             this.pauseState();
           }
           this.video.currentTime -= this.frameTime;
-          this.playingCallback();
+          this.playingCallback(playing);
         }
       },
       videoSrcChanged: function(newValue, oldValue) {
@@ -758,7 +968,7 @@
         this.optionalTags.toggleEnableButtons(false);
         var self = this;
         this.playing = setInterval(function() {
-          self.playingCallback();
+          self.playingCallback(true);
         }, 10);
       },
       pauseState: function() {
@@ -768,14 +978,14 @@
         this.playButton.classList.toggle("icon-pause2", !this.video.paused);
         this.optionalTags.toggleEnableButtons(false);
       },
-      playingCallback: function() {
+      playingCallback: function(playing) {
 
         this.frameText.innerHTML = this.getCurrentFrame();
         this.displayVideoTime();
         if(!this.seeking){
           this.updateSeekBar();
         }
-        this.showAllRegions();
+        this.showAllRegions(playing);
       },
       displayVideoTime: function() {
         var currentTime = Math.round(this.video.currentTime);
@@ -791,10 +1001,11 @@
         var perc =  100 * this.seekBar.value / this.seekBar.max;
         this.seekStyle.textContent =  '.seek::-webkit-slider-runnable-track{background-size:'+perc+'% 100%}';
         this.seekStyle.textContent += '.seek::-moz-range-track{background-size:'+perc+'% 100%}';
-      },
+      }
     });
   </script>
   <script src="../jquery/dist/jquery.min.js"></script>
   <script src="../moment/moment.js"></script>
   <script src="js/jquery.imgareaselect.js"></script>
+  <script src="js/keymaster.js"></script>
 </dom-module>
