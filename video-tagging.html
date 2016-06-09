@@ -162,6 +162,7 @@
           var pressedKeys = self.keyboardControl.getPressedKeyCodes();
           var cond = pressedKeys.length == 1 || (pressedKeys.length == 2 && pressedKeys[0] == 16 );
           if(cond) {
+            self.clearArea();
             self.stepFwdClicked(!event.shiftKey);
           }
         });
@@ -169,6 +170,7 @@
           var pressedKeys = self.keyboardControl.getPressedKeyCodes();
           var cond = pressedKeys.length == 1 || (pressedKeys.length == 2 && pressedKeys[0] == 16 );
           if(cond) {
+            self.clearArea();
             self.stepBwdClicked(!event.shiftKey);
           }
         });
@@ -372,6 +374,7 @@
           show:false,
           hide:true
         });
+        this.editedRegionId = this.newRegionSelection = false;
       },
       enableAreaSelect: function(self) {
         $('canvas#overlay').imgAreaSelect({
