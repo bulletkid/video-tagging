@@ -160,7 +160,13 @@
         var self = this;
         this.keyboardControl('right, shift+right', function (event, handler) {
           var pressedKeys = self.keyboardControl.getPressedKeyCodes();
-          var cond = pressedKeys.length == 1 || (pressedKeys.length == 2 && pressedKeys[0] == 16 );
+          var is_shift = false;
+          for(i in pressedKeys){
+              if(pressedKeys[i] == 16){
+                  is_shift = true;
+              }
+          }
+          var cond = pressedKeys.length == 1 || (pressedKeys.length == 2 && is_shift );
           if(cond) {
             self.clearArea();
             self.stepFwdClicked(!event.shiftKey);
@@ -168,7 +174,13 @@
         });
         this.keyboardControl('left, shift+left', function (event, handler) {
           var pressedKeys = self.keyboardControl.getPressedKeyCodes();
-          var cond = pressedKeys.length == 1 || (pressedKeys.length == 2 && pressedKeys[0] == 16 );
+          var is_shift = false;
+          for(i in pressedKeys){
+              if(pressedKeys[i] == 16){
+                  is_shift = true;
+              }
+          }
+          var cond = pressedKeys.length == 1 || (pressedKeys.length == 2 && is_shift );
           if(cond) {
             self.clearArea();
             self.stepBwdClicked(!event.shiftKey);
