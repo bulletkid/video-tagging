@@ -255,7 +255,7 @@
         this.addEventListener("ontagdeleted", function(e) {
 
           var regionId = this.selectedRegionId -1;//Revert to zero-based array
-          var region = this.frames[this.getCurrentFrame()][regionId];
+          var region = this.frames[this.$$("#frameText").innerText][regionId];
           for(var index = 0;index < region.tags.length;index++){
             if(region.tags[index] === e.detail.tagid){
               region.tags.splice(index, 1);
@@ -437,7 +437,7 @@
         } 
         this.lastSelection = this.currentSelection = null;
         if (this.editedRegionId || this.editedRegionId === 0) {
-          this.updateRegion(selection.x1, selection.y1, selection.x2, selection.y2, this.frames[this.getCurrentFrame()][this.editedRegionId]);
+          this.updateRegion(selection.x1, selection.y1, selection.x2, selection.y2, this.frames[this.$$("#frameText").innerText][this.editedRegionId]);
         } else {
           this.createRegion(selection.x1, selection.y1, selection.x2, selection.y2);
         }
@@ -505,14 +505,14 @@
       addTagsToRegion: function(selectedTagsArray) {
 
         var regionId = this.selectedRegionId -1;//Revert to zero-based array
-        var region = this.frames[this.getCurrentFrame()][regionId];
+        var region = this.frames[this.$$("#frameText").innerText][regionId];
         for (var i = 0; i < selectedTagsArray.length; i++) {
 
           region.tags.push(selectedTagsArray[i]);
         }
       },
       nextUntaggedClicked :function() {
-        var frameIndex = this.getCurrentFrame();
+        var frameIndex = this.$$("#frameText").innerText;
         var frames = this.video.duration * this.framerate;
         var framesForward = 1;
         for (var i=frameIndex;i<frames;i++) {
@@ -556,15 +556,15 @@
         //Tags - display the tags of the region and enable editing
         this.optionalTags.toggleEnableButtons(true);
         this.optionalTags.resetSelected();
-        var regions = this.frames[this.getCurrentFrame()];
+        var regions = this.frames[this.$$("#frameText").innerText];
         if(regions) {
-          var tags = this.frames[this.getCurrentFrame()][this.selectedRegionId - 1].tags;
+          var tags = this.frames[this.$$("#frameText").innerText][this.selectedRegionId - 1].tags;
           this.optionalTags.displaySelectedTags(tags);
         }
       },
       deleteRegion: function(e) {
 
-        var regions = this.frames[this.getCurrentFrame()];
+        var regions = this.frames[this.$$("#frameText").innerText];
         regions.splice(this.selectedRegionId - 1, 1);
         //Shift array left to cover removed item - Rename all regions which are higher than the deleted one,
         for (var i=0;i<regions.length;i++) {
@@ -581,7 +581,7 @@
           this.saveCloseSelection();
           this.selectedRegionId = divId;
         }
-        var currentRegion = this.frames[this.getCurrentFrame()][divId - 1];
+        var currentRegion = this.frames[this.$$("#frameText").innerText][divId - 1];
         var widthRatio = $('#vid').width() / currentRegion.width;
         var heightRatio = $('#vid').height() / currentRegion.height;
         this.currentSelection = $('canvas#overlay').imgAreaSelect({
@@ -598,7 +598,7 @@
       hideEditedRegion: function () {
         this.clearFrameElements();//Clear canvas and tags
         this.cleanSelectedElements();//Clear selected regions
-        var frameIndex = this.getCurrentFrame();
+        var frameIndex = this.$$("#frameText").innerText;
         var regions = this.frames[frameIndex];
         var prevRegions = this.frames[frameIndex - 1];
         if (this.checkRegionsPresence(regions) || playing === true) {
@@ -633,7 +633,6 @@
        */
       emitRegionToHost: function() {
         var frameIndex = parseInt(this.$$("#frameText").innerText);
-        console.log("frameIndex ", frameIndex );
         this.fire('onregionchanged', {frame: {frameIndex:frameIndex, regions:this.frames[frameIndex]}});
       },
       /**
@@ -696,7 +695,7 @@
       showAllRegions: function(playing) {
         this.clearFrameElements();//Clear canvas and tags
         this.cleanSelectedElements();//Clear selected regions
-        var frameIndex = parseInt(this.$$("#frameText").innerText);
+        var frameIndex = this.$$("#frameText").innerText;
         var regions = this.frames[frameIndex];
         var prevRegions = this.frames[frameIndex - 1];
         if (this.checkRegionsPresence(regions) || playing === true) {
@@ -757,7 +756,7 @@
       },
       drawAllRegionsExeptEditedOnFrame: function () {
         var selected = [];
-        var regions = this.frames[this.getCurrentFrame()] || [];
+        var regions = this.frames[this.$$("#frameText").innerText] || [];
         for (var i = 0; i < regions.length; i++) {
           if (this.editedRegionId === i) {
             continue;
@@ -791,7 +790,7 @@
         region.type = this.regiontype;
         region.tags = [];
 
-        var frameIndex = parseInt(this.$$("#frameText").innerText);;
+        var frameIndex = this.$$("#frameText").innerText;
         var regions = this.frames[frameIndex];
         //The array is populated and can contain multiple regions
         if(this.multiregions == 1 && regions) {
@@ -882,7 +881,7 @@
        * Creates an empty region array for the current frame, meaning that the frame is not tagged, but has been reviewed.
        */
       emptyFrameClicked: function() {
-        var frameIndex = parseInt(this.$$("#frameText").innerText);;
+        var frameIndex = this.$$("#frameText").innerText;
         var regions = this.frames[frameIndex];
         if(!regions || regions.length === 0) {
           this.frames[frameIndex] = [{}];
@@ -898,11 +897,11 @@
        * If the frame has been marked as empty - reset that.
        */
       resetEmptyFrame: function() {
-        var regions = this.frames[this.getCurrentFrame()];
+        var regions = this.frames[this.$$("#frameText").innerText];
         //If there is an empty region
         if(regions && regions.length === 1 && Object.keys(regions[0]).length === 0) {
           //reset all for this frame
-          this.frames[this.getCurrentFrame()] = [];
+          this.frames[this.$$("#frameText").innerText] = [];
           this.clearFrameElements();
         }
       },
