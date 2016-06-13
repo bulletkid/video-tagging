@@ -632,7 +632,8 @@
        * The host html page can listen to this event.
        */
       emitRegionToHost: function() {
-        var frameIndex = this.$$("#frameText").innerText;
+        var frameIndex = parseInt(this.$$("#frameText").innerText);
+        console.log("frameIndex ", frameIndex );
         this.fire('onregionchanged', {frame: {frameIndex:frameIndex, regions:this.frames[frameIndex]}});
       },
       /**
