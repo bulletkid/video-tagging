@@ -696,7 +696,7 @@
       showAllRegions: function(playing) {
         this.clearFrameElements();//Clear canvas and tags
         this.cleanSelectedElements();//Clear selected regions
-        var frameIndex = this.getCurrentFrame();
+        var frameIndex = parseInt(this.$$("#frameText").innerText);
         var regions = this.frames[frameIndex];
         var prevRegions = this.frames[frameIndex - 1];
         if (this.checkRegionsPresence(regions) || playing === true) {
@@ -791,7 +791,7 @@
         region.type = this.regiontype;
         region.tags = [];
 
-        var frameIndex = this.getCurrentFrame();
+        var frameIndex = parseInt(this.$$("#frameText").innerText);;
         var regions = this.frames[frameIndex];
         //The array is populated and can contain multiple regions
         if(this.multiregions == 1 && regions) {
@@ -882,7 +882,7 @@
        * Creates an empty region array for the current frame, meaning that the frame is not tagged, but has been reviewed.
        */
       emptyFrameClicked: function() {
-        var frameIndex = this.getCurrentFrame();
+        var frameIndex = parseInt(this.$$("#frameText").innerText);;
         var regions = this.frames[frameIndex];
         if(!regions || regions.length === 0) {
           this.frames[frameIndex] = [{}];
