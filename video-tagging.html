@@ -702,7 +702,7 @@
           //Draw all regions for this frame
           this.drawAllRegionsOnFrame(this.frames[frameIndex]);
         } else {
-          if (!regions && this.checkRegionsPresence(prevRegions)) {
+          if ((!regions || (regions!= null && regions != undefined && regions.length == 0)) && this.checkRegionsPresence(prevRegions)) {
             console.log('copy regions from previous frame');
             console.log('prev regions: ', prevRegions);
             var clonedArray = JSON.parse(JSON.stringify(prevRegions));
