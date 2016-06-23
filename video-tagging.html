@@ -51,6 +51,9 @@
             <td class="videoControlCell frameNumber">
               <span id='frameText' class="textElements" title="frame#"></span>
             </td>
+            <td class="videoControlCell simpleControl clickableControl">
+              <span id="lastsaved"  title="To the last saved frame" class="icon-last taggingControls" on-click='lastSavedFrameClicked'></span>
+            </td>
             <td id="playSpeedCell" title="play speed" class="videoControlCell longControl clickableControl">
               <span id="playbackSpan"  class="textElements" on-click="playbackSpeedClicked">x 1.0</span>
             </td>
@@ -197,6 +200,13 @@
 
         //Reset all variables to new src
         var self = this;
+
+        this.addEventListener('regionsavefail', function (e) {
+          alert('Frame Saving Failed! Try again!');
+          var currentFrame = self.frames[e.detail.frameIndex];
+          self.editRegion(e.detail.editedRegionId);
+        });
+
         this.video.addEventListener( "loadedmetadata", function (e) {
 
           self.controlWrapper.style.display = "block";
@@ -529,6 +539,17 @@
           framesForward++;
         }
       },
+      lastSavedFrameClicked: function () {
+        var frameIndex = this.$$("#frameText").innerText;
+        var frames = this.video.duration * this.framerate;
+        var savedFramesIndexes = Object.keys(this.frames);
+        var framesForward = parseInt(savedFramesIndexes[savedFramesIndexes.length-1])-1;
+        if(!this.video.paused) {
+          this.playPauseClicked();//Will pause the video
+        }
+        this.video.currentTime += (this.frameTime * framesForward);
+        this.playingCallback();
+      },
       lockTagsClicked: function() {
 
         var selTags = this.optionalTags.getSelectedTags();
@@ -592,6 +613,7 @@
           y2: (currentRegion.y2 * heightRatio)
         });
         this.lastSelection = this.currentSelection.getSelection();
+        this.lastEditedRegion = divId;
         this.editedRegionId = divId - 1;
         this.hideEditedRegion();
       },
@@ -633,7 +655,7 @@
        */
       emitRegionToHost: function() {
         var frameIndex = parseInt(this.$$("#frameText").innerText);
-        this.fire('onregionchanged', {frame: {frameIndex:frameIndex, regions:this.frames[frameIndex]}});
+        this.fire('onregionchanged', {frame: {frameIndex:frameIndex, regions: this.frames[frameIndex], editedRegion: this.lastEditedRegion}});
       },
       /**
        * @method addDivToRegion
