@@ -83,6 +83,12 @@
         </div>
       </div>
     </div>
+    <div class="color-controls">
+      <h4>Selected region color:</h4>
+      <a href="javascript:void(0)" class="btn btn-success" on-click="setGreenBorders" >Green</a>
+      <a href="javascript:void(0)" class="btn btn-warning" on-click="setYellowBorders">Yellow</a>
+      <a href="javascript:void(0)" class="btn btn-danger" on-click="setRedBorders">Red</a>
+    </div>
   </template>
   <script>
 
@@ -120,6 +126,8 @@
         this.selectedRegionId = 0;//Holds the current selected region number
         this.lockTagsEnabled = false;
         this.selectedTags = [];
+
+        this.borderColor = 'red';
 
         //Divs and spans
         this.controlWrapper= this.$$('#controlWrapper');
@@ -166,9 +174,9 @@
           var pressedKeys = self.keyboardControl.getPressedKeyCodes();
           var to_ignore = false
           for(key in pressedKeys){
-              if(key_codes_to_ignore.indexOf(pressedKeys[key]) != -1){
-                  to_ignore = true
-              }
+            if(key_codes_to_ignore.indexOf(pressedKeys[key]) != -1){
+              to_ignore = true
+            }
           }
           if(!to_ignore){
             self.clearArea();
@@ -180,7 +188,7 @@
           var to_ignore = false
           for(key in pressedKeys){
             if(key_codes_to_ignore.indexOf(pressedKeys[key]) != -1){
-                to_ignore = true
+              to_ignore = true
             }
           }
           if(!to_ignore){
@@ -424,7 +432,7 @@
                 }
               }
               if (self.newRegionSelection) {
-                self.saveCloseSelection();                
+                self.saveCloseSelection();
               }
             },
             onSelectStart: function(img, selection){
@@ -444,7 +452,7 @@
         var selection = this.currentSelection.getSelection();
         if ((!selection.width || !selection.height) && this.lastSelection) {
           selection = this.lastSelection;
-        } 
+        }
         this.lastSelection = this.currentSelection = null;
         if (this.editedRegionId || this.editedRegionId === 0) {
           this.updateRegion(selection.x1, selection.y1, selection.x2, selection.y2, this.frames[this.$$("#frameText").innerText][this.editedRegionId]);
@@ -466,7 +474,22 @@
             position.y2 + y2);
         this.currentSelection.update();
       },
-
+      updateExistingBorders: function (color) {
+        this.$$('.regionCanvasSelected').classList.remove('greenBorder', 'yellowBorder', 'redBorder');
+        this.$$('.regionCanvasSelected').classList.add(color + 'Border');
+      },
+      setGreenBorders: function() {
+        this.borderColor = 'green';
+        this.updateExistingBorders(this.borderColor);
+      },
+      setYellowBorders: function() {
+        this.borderColor = 'yellow';
+        this.updateExistingBorders(this.borderColor);
+      },
+      setRedBorders: function() {
+        this.borderColor = 'red';
+        this.updateExistingBorders(this.borderColor);
+      },
 
       /**
        * All functions related to regions management
@@ -571,6 +594,8 @@
         this.cleanSelectedElements();
         var div = document.getElementById(divId);
         div.classList.add("regionCanvasSelected");
+        div.classList.remove("greenBorder", "yellowBorder", "redBorder");
+        div.classList.add(this.borderColor + "Border");
         this.selectedRegionId = div.id;
         this.positionRegionNameLabel(div);
 
@@ -760,7 +785,7 @@
         var self = this;
         regions.forEach(function (region, i) {
           var widthRatio, heightRatio, x1, x2, y1, y2;
-  
+
           //Calculate x, y relative to current width and height
           widthRatio = $('#vid').width() / region.width;
           heightRatio = $('#vid').height() / region.height;
