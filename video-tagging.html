@@ -1021,7 +1021,7 @@ Polymer({
         this.currentFrame = this.currentFrame + 1;
 
         // Update image
-        this.img.src = this.videoBaseUrl + this.currentFrame.toString() + ".jpg"; ///+ this.storageSuffix;
+        this.img.src = this.videoBaseUrl + (this.currentFrame - 1).toString() + ".jpg"; ///+ this.storageSuffix;
 
         // Show regions
         this.showAllRegions(false);
@@ -1034,7 +1034,7 @@ Polymer({
         this.currentFrame = this.currentFrame - 1;
 
         // Update image
-        this.img.src = this.videoBaseUrl + this.currentFrame.toString() + ".jpg"; ///+ this.storageSuffix;
+        this.img.src = this.videoBaseUrl + (this.currentFrame - 1).toString() + ".jpg"; ///+ this.storageSuffix;
 
         // Show regions
         this.showAllRegions(false);
@@ -1046,7 +1046,7 @@ Polymer({
             console.log("UDIIIIIIIIIIIII storage suffix is ", this.inputframes);
             this.currentFrame = 1;
             this.img = this.$$('#mainImg');
-            this.img.src = this.videoBaseUrl + this.currentFrame.toString() + ".jpg"; ///+ this.storageSuffix;
+            this.img.src = this.videoBaseUrl + (this.currentFrame - 1).toString() + ".jpg"; ///+ this.storageSuffix;
 
             this.enableAreaSelect(this);
             this.optionalTags.createTagControls(this.inputtagsarray);
