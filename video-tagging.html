@@ -290,7 +290,7 @@ Polymer({
         this.addEventListener("ontagdeleted", function (e) {
 
             var regionId = this.selectedRegionId - 1;//Revert to zero-based array
-            var region = this.frames[this.currentFrame][regionId];
+            var region = this.frames[this.currentFrame + 1][regionId];
             for (var index = 0; index < region.tags.length; index++) {
                 if (region.tags[index] === e.detail.tagid) {
                     region.tags.splice(index, 1);
@@ -376,7 +376,7 @@ Polymer({
                 e.stopPropagation();
                 if (self.currentSelection) {
                     var nextId = self.editedRegionId + 2;
-                    if (self.frames[self.getCurrentFrame()].length < nextId) {
+                    if (self.frames[self.getCurrentFrame() + 1].length < nextId) {
                         nextId = 1;
                     }
                     self.editRegion(nextId);
@@ -472,7 +472,7 @@ Polymer({
         }
         this.lastSelection = this.currentSelection = null;
         if (this.editedRegionId || this.editedRegionId === 0) {
-            this.updateRegion(selection.x1, selection.y1, selection.x2, selection.y2, this.frames[this.currentFrame][this.editedRegionId]);
+            this.updateRegion(selection.x1, selection.y1, selection.x2, selection.y2, this.frames[this.currentFrame + 1][this.editedRegionId]);
         } else {
             this.createRegion(selection.x1, selection.y1, selection.x2, selection.y2);
         }
@@ -530,7 +530,8 @@ Polymer({
     createRegion: function (x1, y1, x2, y2) {
 
         var region = this.addRegion(x1, y1, x2, y2);//Add to in-memory collection
-        this.drawRegion(x1, y1, x2, y2, region.name);//Draw
+//        this.drawRegion(x1, y1, x2, y2, region.name);//Draw
+        this.showAllRegions(true);
         this.regionSelected(region.name);//Select it by default
 
         if (this.lockTagsEnabled) {
@@ -557,7 +558,7 @@ Polymer({
     addTagsToRegion: function (selectedTagsArray) {
 
         var regionId = this.selectedRegionId - 1;//Revert to zero-based array
-        var region = this.frames[this.currentFrame][regionId];
+        var region = this.frames[this.currentFrame + 1][regionId];
         for (var i = 0; i < selectedTagsArray.length; i++) {
 
             region.tags.push(selectedTagsArray[i]);
@@ -613,7 +614,7 @@ Polymer({
         this.lockTag.classList.toggle("controlOff", !this.lockTagsEnabled);
     },
     regionSelected: function (divId) {
-        this.cleanSelectedElements();
+//        this.cleanSelectedElements();
         var div = document.getElementById(divId);
         div.classList.add("regionCanvasSelected");
         div.classList.remove("greenBorder", "yellowBorder", "redBorder");
@@ -624,15 +625,15 @@ Polymer({
         //Tags - display the tags of the region and enable editing
         this.optionalTags.toggleEnableButtons(true);
         this.optionalTags.resetSelected();
-        var regions = this.frames[this.currentFrame];
+        var regions = this.frames[this.currentFrame + 1];
         if (regions) {
-            var tags = this.frames[this.currentFrame][this.selectedRegionId - 1].tags;
+            var tags = this.frames[this.currentFrame + 1][this.selectedRegionId - 1].tags;
             this.optionalTags.displaySelectedTags(tags);
         }
     },
     deleteRegion: function (e) {
 
-        var regions = this.frames[this.currentFrame];
+        var regions = this.frames[this.currentFrame + 1];
         regions.splice(this.selectedRegionId - 1, 1);
         //Shift array left to cover removed item - Rename all regions which are higher than the deleted one,
         for (var i = 0; i < regions.length; i++) {
@@ -649,7 +650,7 @@ Polymer({
             this.saveCloseSelection();
             this.selectedRegionId = divId;
         }
-        var currentRegion = this.frames[this.currentFrame][divId - 1];
+        var currentRegion = this.frames[this.currentFrame + 1][divId - 1];
         var widthRatio = $('#mainImg').width() / currentRegion.width;
         var heightRatio = $('#mainImg').height() / currentRegion.height;
         this.currentSelection = $('canvas#overlay').imgAreaSelect({
@@ -667,7 +668,7 @@ Polymer({
     hideEditedRegion: function () {
         this.clearFrameElements();//Clear canvas and tags
         this.cleanSelectedElements();//Clear selected regions
-        var frameIndex = this.currentFrame;
+        var frameIndex = this.currentFrame + 1;
         var regions = this.frames[frameIndex];
         var prevRegions = this.frames[frameIndex - 1];
         if (this.checkRegionsPresence(regions) || playing === true) {
@@ -691,7 +692,8 @@ Polymer({
         region.y2 = y2;
         region.width = $('#mainImg').width();
         region.height = $('#mainImg').height();
-        this.drawRegion(x1, y1, x2, y2, region.name);//Draw
+//        this.drawRegion(x1, y1, x2, y2, region.name);//Draw
+        this.showAllRegions(true);
         this.regionSelected(region.name);//Select it by default
         this.emitRegionToHost();//Persist
     },
@@ -701,7 +703,7 @@ Polymer({
      * The host html page can listen to this event.
      */
     emitRegionToHost: function () {
-        var frameIndex = this.currentFrame;
+        var frameIndex = this.currentFrame + 1;
         this.fire('onregionchanged', {frame: {frameIndex: frameIndex, regions: this.frames[frameIndex], editedRegion: this.lastEditedRegion}});
     },
     /**
@@ -738,11 +740,11 @@ Polymer({
                     self.regionSelected(div.id);
                     self.positionRegionNameLabel(this);
                 })
-                .mouseleave(function (e) {
-                    if ($(e.relatedTarget).closest(self.regionLabelDiv).length === 0) {
-                        self.regionLabelDiv.style.display = "none";
-                    }
-                });
+//                .mouseleave(function (e) {
+//                    if ($(e.relatedTarget).closest(self.regionLabelDiv).length === 0) {
+//                        self.regionLabelDiv.style.display = "none";
+//                    }
+//                });
 
         Polymer.dom(this.$.videoWrapper).appendChild(div);
     },
@@ -766,7 +768,7 @@ Polymer({
         console.log("UDIII show all regions");
         this.clearFrameElements();//Clear canvas and tags
         this.cleanSelectedElements();//Clear selected regions
-        var frameIndex = this.currentFrame;
+        var frameIndex = this.currentFrame + 1;
         var regions = this.frames[frameIndex];
         var prevRegions = this.frames[frameIndex - 1];
         if (this.checkRegionsPresence(regions) || playing === true) {
@@ -820,14 +822,12 @@ Polymer({
 
             self.drawRegion(x1, y1, x2, y2, region.name);
             //Only 1 region - select it and show tags
-            if (regions.length === 1) {
-                self.regionSelected(region.name)
-            }
+            self.regionSelected(region.name)
         })
     },
     drawAllRegionsExeptEditedOnFrame: function () {
         var selected = [];
-        var regions = this.frames[this.currentFrame] || [];
+        var regions = this.frames[this.currentFrame + 1] || [];
         for (var i = 0; i < regions.length; i++) {
             if (this.editedRegionId === i) {
                 continue;
@@ -861,7 +861,7 @@ Polymer({
         region.type = this.regiontype;
         region.tags = [];
 
-        var frameIndex = this.currentFrame;
+        var frameIndex = this.currentFrame + 1;
         var regions = this.frames[frameIndex];
         //The array is populated and can contain multiple regions
         if (this.multiregions == 1 && regions) {
@@ -953,7 +953,7 @@ Polymer({
      * Creates an empty region array for the current frame, meaning that the frame is not tagged, but has been reviewed.
      */
     emptyFrameClicked: function () {
-        var frameIndex = this.currentFrame;
+        var frameIndex = this.currentFrame + 1;
         var regions = this.frames[frameIndex];
         if (!regions || regions.length === 0) {
             this.frames[frameIndex] = [
@@ -971,11 +971,11 @@ Polymer({
      * If the frame has been marked as empty - reset that.
      */
     resetEmptyFrame: function () {
-        var regions = this.frames[this.currentFrame];
+        var regions = this.frames[this.currentFrame + 1];
         //If there is an empty region
         if (regions && regions.length === 1 && Object.keys(regions[0]).length === 0) {
             //reset all for this frame
-            this.frames[this.currentFrame] = [];
+            this.frames[this.currentFrame + 1] = [];
             this.clearFrameElements();
         }
     },
@@ -1014,39 +1014,40 @@ Polymer({
         this.video.paused ? this.playState() : this.pauseState();
     },
     stepFwdClicked: function (playing) {
-        if(this.currentFrame >= this.framesNum){
+        if(this.currentFrame + 1 >= this.framesNum){
             return;
         }
         // Update frame index
         this.currentFrame = this.currentFrame + 1;
+        document.getElementById("frameText").innerHTML = (this.currentFrame).toString()
 
         // Update image
-        this.img.src = this.videoBaseUrl + (this.currentFrame - 1).toString() + ".jpg"; ///+ this.storageSuffix;
+        this.img.src = this.videoBaseUrl + (this.currentFrame).toString() + ".jpg"; ///+ this.storageSuffix;
 
         // Show regions
-        this.showAllRegions(false);
+        this.showAllRegions(playing);
     },
     stepBwdClicked: function (playing) {
-        if(this.currentFrame == 1){
+        if(this.currentFrame == 0){
             return;
         }
         // Update frame index
         this.currentFrame = this.currentFrame - 1;
+        document.getElementById("frameText").innerHTML = (this.currentFrame).toString()
 
         // Update image
-        this.img.src = this.videoBaseUrl + (this.currentFrame - 1).toString() + ".jpg"; ///+ this.storageSuffix;
+        this.img.src = this.videoBaseUrl + (this.currentFrame).toString() + ".jpg"; ///+ this.storageSuffix;
 
         // Show regions
-        this.showAllRegions(false);
+        this.showAllRegions(true);
     },
     GotSrc: function (newValue, oldValue) {
         if (newValue != undefined && newValue != null && newValue != "") {
-            console.log("UDIIIII Got suffix");
             // PERCEPTO
-            console.log("UDIIIIIIIIIIIII storage suffix is ", this.inputframes);
-            this.currentFrame = 1;
+            this.currentFrame = 0;
+            document.getElementById("frameText").innerHTML = (this.currentFrame).toString()
             this.img = this.$$('#mainImg');
-            this.img.src = this.videoBaseUrl + (this.currentFrame - 1).toString() + ".jpg"; ///+ this.storageSuffix;
+            this.img.src = this.videoBaseUrl + (this.currentFrame).toString() + ".jpg"; ///+ this.storageSuffix;
 
             this.enableAreaSelect(this);
             this.optionalTags.createTagControls(this.inputtagsarray);
@@ -1055,7 +1056,6 @@ Polymer({
         }
     },
     videoSrcChanged: function (newValue, oldValue) {
-        console.log("UDIIIIIIIIII video src changed ", newValue);
 
         if (this.video) {
             this.video.src = newValue;
