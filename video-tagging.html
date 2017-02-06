@@ -188,29 +188,33 @@ Polymer({
         var key_codes_to_ignore = [83, 90, 88]
         var self = this;
         this.keyboardControl('right, shift+right', function (event, handler) {
-            var pressedKeys = self.keyboardControl.getPressedKeyCodes();
-            var to_ignore = false
-            for (key in pressedKeys) {
-                if (key_codes_to_ignore.indexOf(pressedKeys[key]) != -1) {
-                    to_ignore = true
+            if(self.currentSelection == null){
+                var pressedKeys = self.keyboardControl.getPressedKeyCodes();
+                var to_ignore = false
+                for (key in pressedKeys) {
+                    if (key_codes_to_ignore.indexOf(pressedKeys[key]) != -1) {
+                        to_ignore = true
+                    }
                 }
-            }
-            if (!to_ignore) {
-                self.clearArea();
-                self.stepFwdClicked(!event.shiftKey);
+                if (!to_ignore) {
+                    self.clearArea();
+                    self.stepFwdClicked(!event.shiftKey);
+                }
             }
         });
         this.keyboardControl('left, shift+left', function (event, handler) {
             var pressedKeys = self.keyboardControl.getPressedKeyCodes();
             var to_ignore = false
-            for (key in pressedKeys) {
-                if (key_codes_to_ignore.indexOf(pressedKeys[key]) != -1) {
-                    to_ignore = true
+            if(self.currentSelection == null){
+                for (key in pressedKeys) {
+                    if (key_codes_to_ignore.indexOf(pressedKeys[key]) != -1) {
+                        to_ignore = true
+                    }
                 }
-            }
-            if (!to_ignore) {
-                self.clearArea();
-                self.stepBwdClicked(true); //never copy rec backwards...
+                if (!to_ignore) {
+                    self.clearArea();
+                    self.stepBwdClicked(true); //never copy rec backwards...
+                }
             }
         });
     },
@@ -336,7 +340,10 @@ Polymer({
                 e.preventDefault();
                 var pressedKeys = self.keyboardControl.getPressedKeyCodes();
                 if (pressedKeys.length !== 2) {
-                    return;
+                    var shortcut = "s" + '+' + keyCodes[pressedKeys[0]];
+                    if (selectionShortcuts[shortcut]) {
+                        self.changeCurrentSelection.apply(self, selectionShortcuts[shortcut]);
+                    }
                 }
                 var shortcut = keyCodes[pressedKeys[0]] + '+' + keyCodes[pressedKeys[1]];
                 if (selectionShortcuts[shortcut]) {
