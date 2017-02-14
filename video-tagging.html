@@ -37,7 +37,7 @@
                 <tr>
                     <td class="videoControlCell simpleControl clickableControl">
                         <span id="stepbwd" title="prev" class="icon-backward2 taggingControls"
-                              on-click='stepBwdClicked'></span>
+                              on-click='stepBwdClicked(true)'></span>
                     </td>
                     <td class="videoControlCell simpleControl clickableControl">
                         <span id="play-pause" title="play/pause" class="icon-play3 taggingControls"
@@ -45,7 +45,7 @@
                     </td>
                     <td class="videoControlCell simpleControl clickableControl">
                         <span id="stepfwd" title="next" class="icon-forward3 taggingControls"
-                              on-click='stepFwdClicked'></span>
+                              on-click='stepFwdClicked(true)'></span>
                     </td>
                     <td class="videoControlCell simpleControl clickableControl">
                         <span id="nextuntagged" title="first untagged frame" class="icon-next2 taggingControls"
@@ -1032,6 +1032,10 @@ Polymer({
     },
 
     stepFwdClicked: function (playing) {
+        if(playing != true && playing != false){
+            playing = true;
+        }
+
         if(this.currentFrame + 1 >= this.framesNum){
             return;
         }
@@ -1046,6 +1050,10 @@ Polymer({
         this.showAllRegions(playing);
     },
     stepBwdClicked: function (playing) {
+        if(playing != true && playing != false){
+            playing = true;
+        }
+
         if(this.currentFrame == 0){
             return;
         }
